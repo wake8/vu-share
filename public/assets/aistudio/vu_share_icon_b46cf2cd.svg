@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">VU Share neon infinity app icon</title>
+  <desc id="desc">A luminous cyan, blue and violet infinity symbol with circuit lines on a deep navy rounded-square background, above the VU Share wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071A3D"/>
+      <stop offset="0.52" stop-color="#050B24"/>
+      <stop offset="1" stop-color="#10052D"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00D9FF"/>
+      <stop offset="0.48" stop-color="#236BFF"/>
+      <stop offset="1" stop-color="#A62BFF"/>
+    </linearGradient>
+    <linearGradient id="infinity" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00EFFF"/>
+      <stop offset="0.30" stop-color="#087BFF"/>
+      <stop offset="0.56" stop-color="#31DFFF"/>
+      <stop offset="0.78" stop-color="#8B35FF"/>
+      <stop offset="1" stop-color="#FF48E8"/>
+    </linearGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00DFFF"/>
+      <stop offset="0.55" stop-color="#268CFF"/>
+      <stop offset="1" stop-color="#D34BFF"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#214EFF" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#214EFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="13" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded app tile -->
+  <rect x="8" y="8" width="1008" height="1008" rx="174" fill="url(#bg)"/>
+  <rect x="10" y="10" width="1004" height="1004" rx="172" fill="none" stroke="url(#rim)" stroke-width="5" opacity=".9"/>
+  <ellipse cx="512" cy="465" rx="430" ry="365" fill="url(#halo)"/>
+
+  <!-- Subtle orbital rings -->
+  <g fill="none" stroke="#176DFF" stroke-width="4" opacity=".28">
+    <path d="M245 405 C300 225 720 185 805 395"/>
+    <path d="M230 635 C315 830 710 850 805 640"/>
+  </g>
+  <g fill="none" stroke="url(#rim)" stroke-width="9" stroke-linecap="round" opacity=".9" filter="url(#softGlow)">
+    <path d="M382 218 C420 202 457 196 493 196"/>
+    <path d="M535 828 C575 827 613 818 649 800"/>
+  </g>
+
+  <!-- Circuit traces on either side -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <g stroke="#00DFFF" stroke-width="4">
+      <path d="M44 455 H152 L181 425 H244"/>
+      <path d="M27 512 H122 L151 486 H229"/>
+      <path d="M86 570 H165 L193 590 H252"/>
+    </g>
+    <g stroke="#C34BFF" stroke-width="4">
+      <path d="M980 455 H872 L843 425 H780"/>
+      <path d="M997 512 H902 L873 486 H795"/>
+      <path d="M938 570 H859 L831 590 H772"/>
+    </g>
+  </g>
+  <g filter="url(#glow)">
+    <g fill="#A7F8FF"><circle cx="44" cy="455" r="9"/><circle cx="27" cy="512" r="9"/><circle cx="86" cy="570" r="8"/></g>
+    <g fill="#F3B6FF"><circle cx="980" cy="455" r="9"/><circle cx="997" cy="512" r="9"/><circle cx="938" cy="570" r="8"/></g>
+  </g>
+
+  <!-- Infinity symbol: luminous ribbon -->
+  <path d="M512 512 C425 425 360 365 287 365 C195 365 145 431 145 512 C145 594 199 659 286 659 C369 659 435 589 512 512 C589 435 655 365 738 365 C825 365 879 430 879 512 C879 593 829 659 737 659 C664 659 599 599 512 512 Z"
+        fill="none" stroke="url(#infinity)" stroke-width="78" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M512 512 C425 425 360 365 287 365 C195 365 145 431 145 512 C145 594 199 659 286 659 C369 659 435 589 512 512 C589 435 655 365 738 365 C825 365 879 430 879 512 C879 593 829 659 737 659 C664 659 599 599 512 512 Z"
+        fill="none" stroke="url(#infinity)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M512 512 C425 425 360 365 287 365 C195 365 145 431 145 512 C145 594 199 659 286 659 C369 659 435 589 512 512 C589 435 655 365 738 365 C825 365 879 430 879 512 C879 593 829 659 737 659 C664 659 599 599 512 512 Z"
+        fill="none" stroke="#D8FFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".85" filter="url(#softGlow)"/>
+
+  <!-- Wordmark -->
+  <text x="170" y="855" font-family="Arial, Helvetica, sans-serif" font-size="166" font-weight="800" letter-spacing="-8" fill="#FFFFFF">VU</text>
+  <text x="446" y="855" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="700" letter-spacing="-7" fill="url(#word)">Share</text>
+</svg>

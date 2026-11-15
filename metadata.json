@@ -1,0 +1,6 @@
+{
+  "name": "VU Share",
+  "description": "Fast, minimal, offline peer-to-peer file sharing for photos, videos, music, documents, and APKs without internet or cloud.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

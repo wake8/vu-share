@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Deep navy gradient matching vu_share_icon SVG -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:type="linear">
+                <item
+                    android:color="#FF071A3D"
+                    android:offset="0" />
+                <item
+                    android:color="#FF050B24"
+                    android:offset="0.52" />
+                <item
+                    android:color="#FF10052D"
+                    android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Subtle radial center halo -->
+    <path android:pathData="M54,49m-45,0a45,39 0,1 0,90 0a45,39 0,1 0,-90 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="54"
+                android:centerY="49"
+                android:gradientRadius="45"
+                android:type="radial">
+                <item
+                    android:color="#4D214EFF"
+                    android:offset="0" />
+                <item
+                    android:color="#00214EFF"
+                    android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>
