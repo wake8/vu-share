@@ -1,12 +1,15 @@
 package com.vunnam
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,11 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vunnam.model.TransferStatus
 import com.vunnam.ui.MainViewModel
 import com.vunnam.ui.components.ClipboardShareDialog
 import com.vunnam.ui.components.IncomingProposalDialog
+import com.vunnam.ui.components.NotificationPermissionHelper
+import com.vunnam.ui.components.NotificationPermissionRationaleDialog
 import com.vunnam.ui.navigation.VuDestinations
 import com.vunnam.ui.screens.AboutScreen
 import com.vunnam.ui.screens.CrashConsentScreen
@@ -64,13 +70,41 @@ class MainActivity : ComponentActivity() {
             val emailAppOpenedForReportId by viewModel.emailAppOpenedForReportId.collectAsState()
             val crashEmailError by viewModel.crashEmailError.collectAsState()
             val navController = rememberNavController()
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = currentBackStackEntry?.destination?.route
             var showClipboardDialog by remember { mutableStateOf(false) }
+            var showNotificationRationale by remember { mutableStateOf(false) }
+
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { _ ->
+                // Transfers proceed regardless of choice; granted enables progress panel notifications.
+            }
+
+            // Contextually prompt once on Android 13+ when entering sharing/receiving/transfer flows
+            LaunchedEffect(currentRoute, activeSession?.status, activeCrashReport) {
+                val isTransferContext = currentRoute in setOf(
+                    VuDestinations.DISCOVERY,
+                    VuDestinations.RECEIVE,
+                    VuDestinations.GROUP_SHARE,
+                    VuDestinations.TRANSFER_PROGRESS
+                ) || activeSession?.status == TransferStatus.TRANSFERRING
+
+                if (isTransferContext &&
+                    activeCrashReport == null &&
+                    NotificationPermissionHelper.requiresRuntimePermission() &&
+                    !NotificationPermissionHelper.isNotificationPermissionGranted(this@MainActivity) &&
+                    !NotificationPermissionHelper.hasPromptedNotificationRationale(this@MainActivity)
+                ) {
+                    showNotificationRationale = true
+                }
+            }
 
             // If an active session starts transferring while user is in Receive screen, auto-navigate to progress
             LaunchedEffect(activeSession?.status) {
                 if (activeSession?.status == TransferStatus.TRANSFERRING) {
-                    val currentRoute = navController.currentBackStackEntry?.destination?.route
-                    if (currentRoute != VuDestinations.TRANSFER_PROGRESS) {
+                    val activeRoute = navController.currentBackStackEntry?.destination?.route
+                    if (activeRoute != VuDestinations.TRANSFER_PROGRESS) {
                         navController.navigate(VuDestinations.TRANSFER_PROGRESS) {
                             launchSingleTop = true
                         }
@@ -251,6 +285,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        // Contextual Transfer Notification Permission Rationale (Android 13+)
+                        if (showNotificationRationale && activeCrashReport == null) {
+                            NotificationPermissionRationaleDialog(
+                                onAllow = {
+                                    showNotificationRationale = false
+                                    NotificationPermissionHelper.markNotificationRationalePrompted(this@MainActivity)
+                                    NotificationPermissionHelper.markSystemPromptRequested(this@MainActivity)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+                                },
+                                onNotNow = {
+                                    showNotificationRationale = false
+                                    NotificationPermissionHelper.markNotificationRationalePrompted(this@MainActivity)
+                                }
+                            )
+                        }
+
                         // Offline Crash Report Consent Screen (next-launch recovery or simulated test report)
                         val crashReport = activeCrashReport
                         if (crashReport != null) {

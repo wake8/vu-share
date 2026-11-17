@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">VU Share</string>
+    <string name="notification_permission_title">Show Transfer Notifications?</string>
+    <string name="notification_permission_message">Allow notifications so VU Share can show live transfer progress, speed, and a quick Cancel action in your notification panel when sharing in the background or with the screen off.</string>
+    <string name="notification_permission_allow">Allow</string>
+    <string name="notification_permission_not_now">Not Now</string>
+    <string name="settings_notifications_title">Transfer Notifications</string>
+    <string name="settings_notifications_enabled">Allowed • Live progress shown in notification panel</string>
+    <string name="settings_notifications_disabled">Off • Enable to show live transfer progress in notification panel</string>
+    <string name="settings_notifications_enable_action">Enable</string>
+    <string name="settings_notifications_allowed_badge">Allowed</string>
 </resources>

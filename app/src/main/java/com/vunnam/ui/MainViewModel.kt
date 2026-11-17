@@ -40,6 +40,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val preferencesRepo = app.preferencesRepo
     private val database = app.database
 
+    private val cancelReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            if (intent?.action == "com.vunnam.ACTION_CANCEL_TRANSFER") {
+                cancelActiveTransfer()
+            }
+        }
+    }
+
+    init {
+        val filter = android.content.IntentFilter("com.vunnam.ACTION_CANCEL_TRANSFER")
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            app.registerReceiver(cancelReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            app.registerReceiver(cancelReceiver, filter)
+        }
+    }
+
     // User settings & identity
     val userSettings: StateFlow<UserSettings> = preferencesRepo.userSettingsFlow
         .stateIn(
@@ -137,6 +154,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
+        var isForegroundServiceActive = false
         // Observe active session to manage foreground service notifications
         viewModelScope.launch {
             activeSession.collect { session ->
@@ -149,7 +167,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         else -> "Receiving ${session.items.size} file(s)..."
                     }
                     val progressInt = (session.overallProgress * 100).toInt()
-                    TransferForegroundService.startService(app, title)
+                    
+                    if (!isForegroundServiceActive) {
+                        TransferForegroundService.startService(app, title)
+                        isForegroundServiceActive = true
+                    }
+                    
                     TransferForegroundService.updateProgress(
                         app,
                         title,
@@ -157,8 +180,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         100,
                         if (session.status == TransferStatus.PAUSED) "Paused" else NetworkUtils.formatSpeed(session.speedBps)
                     )
-                } else if (session != null && (session.status == TransferStatus.COMPLETED || session.status == TransferStatus.CANCELLED || session.status == TransferStatus.FAILED || session.status == TransferStatus.REJECTED)) {
-                    TransferForegroundService.stopService(app)
+                } else if (session == null || session.status == TransferStatus.COMPLETED || session.status == TransferStatus.CANCELLED || session.status == TransferStatus.FAILED || session.status == TransferStatus.REJECTED) {
+                    if (isForegroundServiceActive) {
+                        TransferForegroundService.stopService(app)
+                        isForegroundServiceActive = false
+                    }
                 }
             }
         }
@@ -548,5 +574,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
         socketEngine.stopDiscovery()
         socketEngine.stopServer()
+        try {
+            app.unregisterReceiver(cancelReceiver)
+        } catch (e: Exception) {
+            // Ignored if already unregistered
+        }
     }
 }

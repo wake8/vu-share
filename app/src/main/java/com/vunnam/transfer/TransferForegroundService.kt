@@ -117,10 +117,11 @@ class TransferForegroundService : Service {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val cancelIntent = Intent(this, TransferForegroundService::class.java).apply {
-            action = ACTION_CANCEL
+        // Cancel action intent - Broadcast an action so the app can cancel the transfer
+        val cancelIntent = Intent("com.vunnam.ACTION_CANCEL_TRANSFER").apply {
+            setPackage(packageName)
         }
-        val cancelPendingIntent = PendingIntent.getService(
+        val cancelPendingIntent = PendingIntent.getBroadcast(
             this,
             1,
             cancelIntent,
@@ -130,10 +131,13 @@ class TransferForegroundService : Service {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(if (speed.isNotEmpty()) "Speed: $speed" else "Transfer in progress")
+            .setSubText(if (max > 0) "${(progress * 100) / max}%" else "")
             .setSmallIcon(R.drawable.ic_stat_vu_share)
             .setContentIntent(pendingIntent)
             .setProgress(max, progress, progress == 0 && max == 0)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()

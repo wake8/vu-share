@@ -1,5 +1,9 @@
 package com.vunnam.ui.screens
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +37,8 @@ import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Security
@@ -49,10 +56,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,13 +74,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.vunnam.R
 import com.vunnam.config.AppBrandConfig
 import com.vunnam.preferences.DeviceIdentityManager
 import com.vunnam.ui.MainViewModel
+import com.vunnam.ui.components.NotificationPermissionHelper
 import com.vunnam.ui.components.vuFilterChipColors
 import com.vunnam.ui.components.vuSwitchColors
 import com.vunnam.ui.components.vuTextFieldColors
@@ -89,12 +104,35 @@ fun SettingsScreen(
 ) {
     val colors = VuShareTheme.colors
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val appMeta = remember(context) { AppBrandConfig.resolveAppMetadata(context) }
     val systemIsDark = isSystemInDarkTheme()
     val userSettings by viewModel.userSettings.collectAsState()
     var editingNickname by remember(userSettings.nickname) { mutableStateOf(userSettings.nickname) }
     var isEditing by remember { mutableStateOf(false) }
     var showRealCrashConfirmDialog by remember { mutableStateOf(false) }
+    var notificationsGranted by remember {
+        mutableStateOf(NotificationPermissionHelper.isNotificationPermissionGranted(context))
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notificationsGranted = NotificationPermissionHelper.isNotificationPermissionGranted(context)
+        if (!granted && NotificationPermissionHelper.isPermanentlyDenied(context)) {
+            NotificationPermissionHelper.openAppNotificationSettings(context)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationsGranted = NotificationPermissionHelper.isNotificationPermissionGranted(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LazyColumn(
         modifier = modifier
@@ -535,6 +573,96 @@ fun SettingsScreen(
                             colors = vuSwitchColors()
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = colors.divider)
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 12.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (notificationsGranted) {
+                                    Icons.Default.NotificationsActive
+                                } else {
+                                    Icons.Default.NotificationsOff
+                                },
+                                contentDescription = null,
+                                tint = if (notificationsGranted) colors.success else colors.warning,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.settings_notifications_title),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colors.primaryText
+                                )
+                                Text(
+                                    text = stringResource(
+                                        if (notificationsGranted) {
+                                            R.string.settings_notifications_enabled
+                                        } else {
+                                            R.string.settings_notifications_disabled
+                                        }
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.secondaryText
+                                )
+                            }
+                        }
+
+                        if (notificationsGranted) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = colors.success.copy(alpha = 0.14f),
+                                border = BorderStroke(1.dp, colors.success.copy(alpha = 0.45f)),
+                                modifier = Modifier.testTag("settings_notifications_allowed_badge")
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.settings_notifications_allowed_badge),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.success,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                        !NotificationPermissionHelper.isPermanentlyDenied(context)
+                                    ) {
+                                        NotificationPermissionHelper.markNotificationRationalePrompted(context)
+                                        NotificationPermissionHelper.markSystemPromptRequested(context)
+                                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        NotificationPermissionHelper.openAppNotificationSettings(context)
+                                    }
+                                },
+                                border = BorderStroke(1.dp, colors.primaryAccent),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier
+                                    .heightIn(min = 48.dp)
+                                    .testTag("settings_enable_notifications_button")
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.settings_notifications_enable_action),
+                                    color = colors.primaryAccent,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -709,7 +837,7 @@ fun SettingsScreen(
 
                     Text(
                         text = "${appMeta.appName} v${appMeta.versionName} (Build ${appMeta.versionCode}) • ${AppBrandConfig.TAGLINE}\n" +
-                            "Privacy statement, open-source licenses, inspiration notice, and developer contact.",
+                                "Privacy statement, open-source licenses, inspiration notice, and developer contact.",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.secondaryText
                     )
